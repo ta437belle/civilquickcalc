@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CivilQuickCalc</title>
+
+<title>CivilQuickCalc Pro</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -11,20 +12,44 @@
 
 body{
 font-family:Arial;
-max-width:900px;
-margin:auto;
+margin:0;
+background:#f5f7fb;
+}
+
+.sidebar{
+width:220px;
+height:100vh;
+background:#1f4e79;
+color:white;
+position:fixed;
 padding:20px;
 }
 
-h2{
-margin-top:40px;
+.main{
+margin-left:240px;
+padding:30px;
+}
+
+.menu button{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+cursor:pointer;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+margin-bottom:20px;
 }
 
 input,select,button{
 width:100%;
 padding:10px;
 margin:6px 0;
-font-size:16px;
 }
 
 button{
@@ -32,207 +57,156 @@ background:#1f4e79;
 color:white;
 border:none;
 cursor:pointer;
+border-radius:6px;
 }
 
-.result{
-background:#f4f4f4;
-padding:12px;
-margin-top:10px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:10px;
-}
-
-td,th{
-border:1px solid #ccc;
-padding:8px;
-text-align:center;
+.premium{
+background:#ffd700;
+color:black;
 }
 
 </style>
+
 </head>
 
 <body>
 
-<h1 style="text-align:center">CivilQuickCalc</h1>
+<div class="sidebar">
 
-<p>
-Preliminary engineering calculator. Not for final structural design approval.
-</p>
+<h2>CivilQuickCalc Pro</h2>
 
-<hr>
+<div class="menu">
+<button onclick="showSection('concrete')">Concrete</button>
+<button onclick="showSection('beam')">Beam Analysis</button>
+<button onclick="showSection('footing')">Footing Design</button>
+<button onclick="showSection('steel')">Steel Scheduler</button>
+<button class="premium" onclick="unlockPremium()">
+🔒 Unlock Pro ($1)
+</button>
+</div>
 
-<!-- ================= CONCRETE ================= -->
+</div>
 
-<h2>Concrete Volume Calculator</h2>
+<div class="main">
 
-<select id="shape">
-<option value="rect">Rectangular</option>
-<option value="circular">Circular Column</option>
-</select>
+<!-- CONCRETE -->
+<div id="concrete" class="card">
 
-<input id="length" placeholder="Length / Height">
-<select id="lengthUnit">
-<option value="m">m</option>
-<option value="mm">mm</option>
-<option value="ft">ft</option>
-</select>
+<h2>Concrete Material Estimator</h2>
 
-<input id="width" placeholder="Width / Diameter">
-<select id="widthUnit">
-<option value="m">m</option>
-<option value="mm">mm</option>
-<option value="ft">ft</option>
-</select>
+<input id="concreteLength" placeholder="Length (m)">
+<input id="concreteWidth" placeholder="Width (m)">
+<input id="concreteThickness" placeholder="Thickness (m)">
 
-<input id="thickness" placeholder="Thickness (Rectangular Only)">
-<select id="thicknessUnit">
-<option value="m">m</option>
-<option value="mm">mm</option>
-<option value="ft">ft</option>
-</select>
+<button onclick="calcConcrete()">Calculate</button>
 
-<select id="wastage">
-<option value="0">No Wastage</option>
-<option value="5">+5% Wastage</option>
-<option value="10">+10% Wastage</option>
-</select>
+<div id="concreteOutput"></div>
 
-<button onclick="calcConcrete()">Calculate Concrete</button>
+</div>
 
-<div id="concreteResult" class="result"></div>
+<!-- BEAM -->
+<div id="beam" class="card" style="display:none">
 
-<!-- ================= MOMENT & SHEAR ================= -->
+<h2>Beam UDL Analysis</h2>
 
-<h2>Moment & Shear (UDL Beam)</h2>
+<input id="beamSpan" placeholder="Span (m)">
+<input id="beamLoad" placeholder="Load (kN/m)">
 
-<input id="spanM" placeholder="Span L (m)">
-<input id="loadM" placeholder="UDL Load w (kN/m)">
+<button onclick="calcBeam()">Calculate</button>
 
-<button onclick="calcMoment()">Calculate</button>
+<div id="beamOutput"></div>
 
-<div id="momentResult" class="result"></div>
+</div>
 
-<!-- ================= FOOTING ================= -->
+<!-- FOOTING -->
+<div id="footing" class="card" style="display:none">
 
 <h2>Footing Design</h2>
 
-<input id="axialLoad" placeholder="Axial Load (kN)">
-<input id="soilBearing" placeholder="Soil Bearing Capacity (kPa)">
+<input id="footingLoad" placeholder="Axial Load (kN)">
+<input id="soilCap" placeholder="Soil Bearing (kPa)">
 
-<button onclick="calcFooting()">Design Footing</button>
+<button onclick="calcFooting()">Design</button>
 
-<div id="footingResult" class="result"></div>
+<div id="footingOutput"></div>
 
-<!-- ================= STEEL ================= -->
+</div>
 
-<h2>Steel Schedule</h2>
+<!-- STEEL -->
+<div id="steel" class="card" style="display:none">
+
+<h2>Steel Weight Calculator</h2>
 
 <input id="steelDia" placeholder="Bar Diameter (mm)">
 <input id="steelLen" placeholder="Length (m)">
 <input id="steelQty" placeholder="Quantity">
 
-<button onclick="addSteel()">Add Steel</button>
+<button onclick="calcSteel()">Calculate</button>
 
-<table id="steelTable">
-<tr>
-<th>Dia</th>
-<th>Length</th>
-<th>Qty</th>
-<th>Weight (kg)</th>
-</tr>
-</table>
+<div id="steelOutput"></div>
 
-<!-- ================= PDF ================= -->
+</div>
 
-<h2>Report Export</h2>
-
-<button onclick="exportPDF()">Download PDF Report</button>
+</div>
 
 <script>
 
-/* UNIT CONVERSION */
-function toMeters(v,u){
-v=parseFloat(v);
-if(isNaN(v)) return NaN;
-
-if(u==="mm") return v/1000;
-if(u==="ft") return v*0.3048;
-return v;
+/* Navigation */
+function showSection(id){
+document.querySelectorAll(".card").forEach(c=>c.style.display="none");
+document.getElementById(id).style.display="block";
 }
 
-/* CONCRETE */
+/* Concrete */
 function calcConcrete(){
 
-let shape=document.getElementById("shape").value;
+let L=parseFloat(concreteLength.value);
+let W=parseFloat(concreteWidth.value);
+let T=parseFloat(concreteThickness.value);
 
-let L=toMeters(length.value,lengthUnit.value);
-let W=toMeters(width.value,widthUnit.value);
-let T=toMeters(thickness.value,thicknessUnit.value);
+if(isNaN(L)||isNaN(W)||isNaN(T)) return;
 
-if(isNaN(L)||isNaN(W)){
-concreteResult.innerHTML="Enter valid dimensions";
-return;
+let V=L*W*T;
+
+concreteOutput.innerHTML=
+"Volume = "+V.toFixed(3)+" m³";
 }
 
-let V;
+/* Beam */
+function calcBeam(){
 
-if(shape==="rect"){
-if(isNaN(T)){
-concreteResult.innerHTML="Enter thickness";
-return;
-}
-V=L*W*T;
-}
-else{
-V=Math.PI*Math.pow(W/2,2)*L;
-}
-
-let finalV=V*(1+parseFloat(wastage.value)/100);
-
-concreteResult.innerHTML=
-"Concrete Volume = "+V.toFixed(3)+" m³<br>"+
-"With Wastage = "+finalV.toFixed(3)+" m³";
-}
-
-/* MOMENT & SHEAR */
-function calcMoment(){
-
-let L=parseFloat(spanM.value);
-let w=parseFloat(loadM.value);
+let L=parseFloat(beamSpan.value);
+let w=parseFloat(beamLoad.value);
 
 if(isNaN(L)||isNaN(w)) return;
 
 let M=(w*Math.pow(L,2))/8;
 let V=(w*L)/2;
 
-momentResult.innerHTML=
+beamOutput.innerHTML=
 "Max Moment = "+M.toFixed(2)+" kNm<br>"+
 "Max Shear = "+V.toFixed(2)+" kN";
 }
 
-/* FOOTING */
+/* Footing */
 function calcFooting(){
 
-let P=parseFloat(axialLoad.value);
-let q=parseFloat(soilBearing.value);
+let P=parseFloat(footingLoad.value);
+let q=parseFloat(soilCap.value);
 
 if(isNaN(P)||isNaN(q)) return;
 
 let A=(P*1.1)/q;
 let side=Math.sqrt(A);
 
-footingResult.innerHTML=
+footingOutput.innerHTML=
 "Footing Area = "+A.toFixed(2)+" m²<br>"+
-"Suggested Square Footing = "+
-side.toFixed(2)+" m × "+side.toFixed(2)+" m";
+"Recommended Size = "+
+side.toFixed(2)+"m × "+side.toFixed(2)+"m";
 }
 
-/* STEEL TABLE */
-function addSteel(){
+/* Steel */
+function calcSteel(){
 
 let d=parseFloat(steelDia.value);
 let L=parseFloat(steelLen.value);
@@ -242,28 +216,13 @@ if(isNaN(d)||isNaN(L)||isNaN(q)) return;
 
 let weight=(d*d/162)*L*q;
 
-document.getElementById("steelTable").innerHTML+=
-`<tr>
-<td>${d}</td>
-<td>${L}</td>
-<td>${q}</td>
-<td>${weight.toFixed(2)}</td>
-</tr>`;
+steelOutput.innerHTML=
+"Steel Weight = "+weight.toFixed(2)+" kg";
 }
 
-/* PDF EXPORT */
-function exportPDF(){
-
-const { jsPDF } = window.jspdf;
-let doc=new jsPDF();
-
-doc.text("CivilQuickCalc Report",10,10);
-
-doc.text(concreteResult.innerText,10,30);
-doc.text(momentResult.innerText,10,60);
-doc.text(footingResult.innerText,10,90);
-
-doc.save("CivilQuickCalc_Report.pdf");
+/* Premium Unlock */
+function unlockPremium(){
+alert("Connect payment (Stripe / Gumroad) to unlock SaaS features");
 }
 
 </script>
