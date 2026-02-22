@@ -3,55 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CivilQuickCalc Pro</title>
+<title>CivilQuickCalc</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
+
 body{
-    font-family: Arial;
-    max-width:800px;
-    margin:auto;
-    padding:20px;
+font-family:Arial;
+max-width:900px;
+margin:auto;
+padding:20px;
 }
 
 h2{
-    margin-top:40px;
+margin-top:40px;
 }
 
 input,select,button{
-    width:100%;
-    padding:10px;
-    margin:6px 0;
-    font-size:16px;
+width:100%;
+padding:10px;
+margin:6px 0;
+font-size:16px;
 }
 
 button{
-    background:#1f4e79;
-    color:white;
-    border:none;
-    cursor:pointer;
+background:#1f4e79;
+color:white;
+border:none;
+cursor:pointer;
 }
 
 .result{
-    background:#f4f4f4;
-    padding:12px;
-    margin-top:10px;
+background:#f4f4f4;
+padding:12px;
+margin-top:10px;
 }
 
-.small{
-    font-size:12px;
-    color:gray;
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
 }
+
+td,th{
+border:1px solid #ccc;
+padding:8px;
+text-align:center;
+}
+
 </style>
-
 </head>
+
 <body>
 
-<h1>CivilQuickCalc</h1>
+<h1 style="text-align:center">CivilQuickCalc</h1>
 
-<p class="small">
-Preliminary engineering estimation tool only. Not for final structural design.
+<p>
+Preliminary engineering calculator. Not for final structural design approval.
 </p>
 
 <hr>
@@ -61,25 +70,25 @@ Preliminary engineering estimation tool only. Not for final structural design.
 <h2>Concrete Volume Calculator</h2>
 
 <select id="shape">
-<option value="rect">Rectangular Slab / Beam</option>
+<option value="rect">Rectangular</option>
 <option value="circular">Circular Column</option>
 </select>
 
-<input id="length" placeholder="Length or Height">
+<input id="length" placeholder="Length / Height">
 <select id="lengthUnit">
 <option value="m">m</option>
 <option value="mm">mm</option>
 <option value="ft">ft</option>
 </select>
 
-<input id="width" placeholder="Width or Diameter">
+<input id="width" placeholder="Width / Diameter">
 <select id="widthUnit">
 <option value="m">m</option>
 <option value="mm">mm</option>
 <option value="ft">ft</option>
 </select>
 
-<input id="thickness" placeholder="Thickness (Rectangular only)">
+<input id="thickness" placeholder="Thickness (Rectangular Only)">
 <select id="thicknessUnit">
 <option value="m">m</option>
 <option value="mm">mm</option>
@@ -93,39 +102,42 @@ Preliminary engineering estimation tool only. Not for final structural design.
 </select>
 
 <button onclick="calcConcrete()">Calculate Concrete</button>
+
 <div id="concreteResult" class="result"></div>
 
-<!-- ================= MOMENT SHEAR ================= -->
+<!-- ================= MOMENT & SHEAR ================= -->
 
-<h2>Moment & Shear (Simply Supported Beam)</h2>
+<h2>Moment & Shear (UDL Beam)</h2>
 
 <input id="spanM" placeholder="Span L (m)">
 <input id="loadM" placeholder="UDL Load w (kN/m)">
 
-<button onclick="calcMomentShear()">Calculate</button>
+<button onclick="calcMoment()">Calculate</button>
+
 <div id="momentResult" class="result"></div>
 
 <!-- ================= FOOTING ================= -->
 
-<h2>Footing Design (Preliminary)</h2>
+<h2>Footing Design</h2>
 
 <input id="axialLoad" placeholder="Axial Load (kN)">
 <input id="soilBearing" placeholder="Soil Bearing Capacity (kPa)">
 
 <button onclick="calcFooting()">Design Footing</button>
+
 <div id="footingResult" class="result"></div>
 
-<!-- ================= STEEL TABLE ================= -->
+<!-- ================= STEEL ================= -->
 
-<h2>Steel Schedule Summary</h2>
+<h2>Steel Schedule</h2>
 
-<input id="steelDia" placeholder="Rebar Diameter (mm)">
+<input id="steelDia" placeholder="Bar Diameter (mm)">
 <input id="steelLen" placeholder="Length (m)">
 <input id="steelQty" placeholder="Quantity">
 
 <button onclick="addSteel()">Add Steel</button>
 
-<table border="1" width="100%" id="steelTable">
+<table id="steelTable">
 <tr>
 <th>Dia</th>
 <th>Length</th>
@@ -138,15 +150,15 @@ Preliminary engineering estimation tool only. Not for final structural design.
 
 <h2>Report Export</h2>
 
-<button onclick="exportPDF()">
-🔒 Download Report PDF (Unlock Feature)
-</button>
+<button onclick="exportPDF()">Download PDF Report</button>
 
 <script>
 
 /* UNIT CONVERSION */
 function toMeters(v,u){
 v=parseFloat(v);
+if(isNaN(v)) return NaN;
+
 if(u==="mm") return v/1000;
 if(u==="ft") return v*0.3048;
 return v;
@@ -162,29 +174,32 @@ let W=toMeters(width.value,widthUnit.value);
 let T=toMeters(thickness.value,thicknessUnit.value);
 
 if(isNaN(L)||isNaN(W)){
-concreteResult.innerHTML="Enter valid values";
+concreteResult.innerHTML="Enter valid dimensions";
 return;
 }
 
 let V;
 
 if(shape==="rect"){
-if(isNaN(T)){concreteResult.innerHTML="Enter thickness";return;}
-T=toMeters(T,thicknessUnit.value);
+if(isNaN(T)){
+concreteResult.innerHTML="Enter thickness";
+return;
+}
 V=L*W*T;
-}else{
+}
+else{
 V=Math.PI*Math.pow(W/2,2)*L;
 }
 
 let finalV=V*(1+parseFloat(wastage.value)/100);
 
 concreteResult.innerHTML=
-"Volume: "+V.toFixed(3)+" m³<br>"+
-"With Wastage: "+finalV.toFixed(3)+" m³";
+"Concrete Volume = "+V.toFixed(3)+" m³<br>"+
+"With Wastage = "+finalV.toFixed(3)+" m³";
 }
 
-/* MOMENT SHEAR */
-function calcMomentShear(){
+/* MOMENT & SHEAR */
+function calcMoment(){
 
 let L=parseFloat(spanM.value);
 let w=parseFloat(loadM.value);
@@ -195,8 +210,8 @@ let M=(w*Math.pow(L,2))/8;
 let V=(w*L)/2;
 
 momentResult.innerHTML=
-"Max Moment: "+M.toFixed(2)+" kNm<br>"+
-"Max Shear: "+V.toFixed(2)+" kN";
+"Max Moment = "+M.toFixed(2)+" kNm<br>"+
+"Max Shear = "+V.toFixed(2)+" kN";
 }
 
 /* FOOTING */
@@ -211,8 +226,8 @@ let A=(P*1.1)/q;
 let side=Math.sqrt(A);
 
 footingResult.innerHTML=
-"Footing Area: "+A.toFixed(2)+" m²<br>"+
-"Suggested Square Footing: "+
+"Footing Area = "+A.toFixed(2)+" m²<br>"+
+"Suggested Square Footing = "+
 side.toFixed(2)+" m × "+side.toFixed(2)+" m";
 }
 
@@ -242,7 +257,7 @@ function exportPDF(){
 const { jsPDF } = window.jspdf;
 let doc=new jsPDF();
 
-doc.text("CivilQuickCalc Engineering Report",10,10);
+doc.text("CivilQuickCalc Report",10,10);
 
 doc.text(concreteResult.innerText,10,30);
 doc.text(momentResult.innerText,10,60);
