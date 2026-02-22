@@ -81,19 +81,26 @@ function toMeters(value, unit) {
 
 // CONCRETE
 function calcConcrete(){
-    let L = toMeters(length.value, lengthUnit.value);
-    let W = toMeters(width.value, widthUnit.value);
-    let T = toMeters(thickness.value, thicknessUnit.value);
+
+    let L = parseFloat(document.getElementById("length").value);
+    let W = parseFloat(document.getElementById("width").value);
+    let T = parseFloat(document.getElementById("thickness").value);
+
+    if(isNaN(L) || isNaN(W) || isNaN(T)){
+        document.getElementById("concreteResult").innerHTML =
+        "Please enter valid numbers.";
+        return;
+    }
+
+    L = toMeters(L, document.getElementById("lengthUnit").value);
+    W = toMeters(W, document.getElementById("widthUnit").value);
+    T = toMeters(T, document.getElementById("thicknessUnit").value);
 
     let V = L * W * T;
-    let dry = 1.54 * V;
 
-    let cementVol = dry / 7;
-    let bags = cementVol / 0.035;
-
-    concreteResult.innerHTML =
-        "Volume: " + V.toFixed(3) + " m³<br>" +
-        "Cement Bags (~): " + bags.toFixed(1);
+    document.getElementById("concreteResult").innerHTML =
+        "Volume: " + V.toFixed(3) + " m³";
+}
 }
 
 // REBAR
